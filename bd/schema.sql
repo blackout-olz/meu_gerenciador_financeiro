@@ -1,0 +1,36 @@
+CREATE TYPE transaction_type AS enum('INCOME','EXPENSE');
+
+CREATE table users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  cpf CHAR(11) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  phone CHAR(11) UNIQUE NOT NULL,
+  birth DATE,
+  password_hash VARCHAR(255) NOT NULL,
+  monthly_income_estimate BIGINT DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid()
+  name VARCHAR(255) NOT NULL,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  type transaction_type NOT NULL,
+  icon VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  categorie_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  amount BIGINT NOT NULL,
+  type transaction_type NOT NULL,
+  description VARCHAR(255),
+  date TIMESTAMP WITH TIME ZONE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
