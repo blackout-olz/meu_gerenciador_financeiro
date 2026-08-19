@@ -1,3 +1,4 @@
+
 # ControlFinance API
 
 Sistema de controle financeiro pessoal desenvolvido com arquitetura Monolítica Modular.
@@ -15,3 +16,6 @@ Sistema de controle financeiro pessoal desenvolvido com arquitetura Monolítica 
 - **`src/shared/`**: Utilitários, tipos e validações compartilhadas entre módulos.
 
 ## Como Executar
+
+# rainbow
+>>>>>>> 2d8c748 (first commit)
