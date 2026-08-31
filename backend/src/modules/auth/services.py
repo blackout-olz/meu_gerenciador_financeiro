@@ -62,14 +62,14 @@ def create_user(session: Session, user_data: UserCreate) -> User:
     return db_user
 
 
-def update_user_by_id(session: Session, user_data: UserUpdate, id: UUID):
+def update_user_by_id(session: Session, user_data: UserUpdate, user_id: UUID) -> User | None:
     """
     Atualiza os dados de perfil de um usuário existente pelo seu ID.
 
     Retorna a instância do usuário atualizado ou None caso o registro não exista.
     """
     # Busca direta pela chave primária (atalho performático do SQLModel)
-    db_user = session.get(User, id)
+    db_user = session.get(User, user_id)
     
     if db_user is None:
         return None
@@ -90,14 +90,14 @@ def update_user_by_id(session: Session, user_data: UserUpdate, id: UUID):
     return db_user
 
 
-def delete_user_by_id(session: Session, id: UUID):
+def delete_user_by_id(session: Session, user_id: UUID) -> User | None:
     """
     Remove fisicamente (Hard Delete) um usuário do banco de dados pelo seu ID.
 
     Retorna o próprio objeto deletado para que o router confirme o sucesso (HTTP 204),
     ou None caso o usuário não seja localizado (HTTP 404).
     """
-    db_user = session.get(User, id)
+    db_user = session.get(User, user_id)
     
     if db_user is None:
         return None

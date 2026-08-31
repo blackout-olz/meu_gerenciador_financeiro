@@ -5,7 +5,7 @@ from sqlmodel import Session
 from src.modules.auth.models import User
 from src.core.database import get_session
 from src.modules.auth.schemas import UserCreate, UserLogin, UserResponse, UserUpdate
-from src.modules.auth.service import (
+from backend.src.modules.auth.services import (
     authenticate_user,
     create_user,
     delete_user_by_id,
