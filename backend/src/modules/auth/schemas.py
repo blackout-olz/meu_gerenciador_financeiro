@@ -55,11 +55,6 @@ class UserUpdate(SQLModel):
     monthly_income_estimate: int | None = None
     
     
-class UserLogin(SQLModel):
-    email: str
-    password: str
-    
-    
 class Token(SQLModel):
     access_token: str
     token_type: str
@@ -67,3 +62,7 @@ class Token(SQLModel):
     
 class TokenData(SQLModel):
     username: str | None = None
+    
+    
+class EmailAlreadyInUseException(Exception):
+    pass

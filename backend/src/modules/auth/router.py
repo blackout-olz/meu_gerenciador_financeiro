@@ -9,7 +9,7 @@ from jwt.exceptions import InvalidTokenError
 
 from src.modules.auth.models import User
 from src.core.database import get_session
-from src.modules.auth.schemas import UserCreate, UserResponse, UserUpdate, Token
+from src.modules.auth.schemas import UserCreate, UserResponse, UserUpdate, Token, EmailAlreadyInUseException
 from src.modules.auth.services import (
     authenticate_user,
     create_user,
@@ -63,7 +63,6 @@ def login_user(
     Retorna erro genérico 401 para impedir enumeração de e-mails ativos.
     """
     user = authenticate_user(session, form_data.username, form_data.password)
-    print(form_data.username)
 
     if not user:
         raise HTTPException(
@@ -90,14 +89,11 @@ def get_user(current_user: Annotated[User, Depends(get_current_user)]
 @router.patch("/me", response_model=UserResponse)
 def update_user(current_user: Annotated[User, Depends(get_current_user)], user_data: UserUpdate, session: Session = Depends(get_session)):
     """Atualiza parcialmente as informações de perfil do usuário."""
-    updated_user = update_user_account(session, user_data, current_user)
+    try:
+        updated_user = update_user_account(session, user_data, current_user)
+    except EmailAlreadyInUseException as err:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(err))
     
-    if updated_user is None:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="E-mail já cadastrado no sistema."
-        )
-
     return updated_user
 
 
