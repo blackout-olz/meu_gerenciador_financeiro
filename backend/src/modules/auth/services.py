@@ -62,17 +62,18 @@ def create_user(session: Session, user_data: UserCreate) -> User:
     return db_user
 
 
-def update_user_by_id(session: Session, user_data: UserUpdate, user_id: UUID) -> User | None:
+def update_user_account(session: Session, user_data: UserUpdate, db_user: User) -> User:
     """
     Atualiza os dados de perfil de um usuário existente pelo seu ID.
 
     Retorna a instância do usuário atualizado ou None caso o registro não exista.
     """
-    # Busca direta pela chave primária (atalho performático do SQLModel)
-    db_user = session.get(User, user_id)
     
-    if db_user is None:
-        return None
+    ##!! Preciso tratar aq caso ele queira colocar um email que já existe
+    if user_data.email:
+        existing_user = get_user_by_email(user_data.email)
+        if existing_user and existing_user.id != db_user.id:
+            return None
     
     # Extrai apenas os campos que foram efetivamente enviados pelo cliente na requisição PATCH
     user_dict = user_data.model_dump(exclude_unset=True)      
@@ -90,17 +91,13 @@ def update_user_by_id(session: Session, user_data: UserUpdate, user_id: UUID) ->
     return db_user
 
 
-def delete_user_by_id(session: Session, user_id: UUID) -> User | None:
+def delete_user_account(session: Session, db_user: User) -> User:
     """
     Remove fisicamente (Hard Delete) um usuário do banco de dados pelo seu ID.
 
     Retorna o próprio objeto deletado para que o router confirme o sucesso (HTTP 204),
     ou None caso o usuário não seja localizado (HTTP 404).
     """
-    db_user = session.get(User, user_id)
-    
-    if db_user is None:
-        return None
     
     session.delete(db_user)   # Marca a entidade para exclusão na sessão
     session.commit()          # Executa a instrução DELETE no PostgreSQL
@@ -115,6 +112,8 @@ def authenticate_user(session: Session, email: str, password: str) -> User | Non
     """
     user = get_user_by_email(session, email)
     if not user:
+        # aqui vou jogar um verify_password contra um hash ficticio
+        # p prevenir timing attacks
         return None
     if not verify_password(password, user.password_hash):
         return None
