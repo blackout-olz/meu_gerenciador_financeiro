@@ -18,7 +18,7 @@ def get_category_by_user_and_name(session: Session, user_id: UUID | None, name: 
     return session.exec(statement).first()
 
 
-def create_category(session: Session, category_data: CategoryCreate) -> Category | None:
+def create_category(session: Session, category_data: CategoryCreate, user_id: UUID) -> Category | None:
     """
     Persiste uma nova categoria no banco de dados.
     
@@ -29,7 +29,7 @@ def create_category(session: Session, category_data: CategoryCreate) -> Category
     category_dict = category_data.model_dump()
     
     # Consulta se o usuário já possui uma categoria com o mesmo nome
-    existing_category = get_category_by_user_and_name(session, category_dict["user_id"], category_dict["name"])
+    existing_category = get_category_by_user_and_name(session, user_id, category_dict["name"])
     
     # Bloqueia a criação caso a categoria existente possua o mesmo tipo (INCOME/EXPENSE)
     if existing_category and existing_category.transaction_type == category_dict["transaction_type"]:
@@ -37,6 +37,7 @@ def create_category(session: Session, category_data: CategoryCreate) -> Category
     
     # Instancia o objeto ORM e realiza o ciclo de persistência no PostgreSQL
     db_category = Category(**category_dict)
+    db_category.user_id = user_id
     
     session.add(db_category)
     session.commit()
@@ -60,19 +61,18 @@ def list_categories_by_user_id(session: Session, user_id: UUID) -> list[Category
     return categories
 
 
-def update_category_by_id(session: Session, category_data: CategoryUpdate, category_id: UUID) -> Category | None:
+def update_category_by_id(session: Session, category_data: CategoryUpdate, category_id: UUID, user_id: UUID) -> Category | None:
     """
     Atualiza os dados de uma categoria existente no banco por seu UUID.
 
     Utiliza `exclude_unset=True` para capturar apenas os campos explicitamente
     enviados na requisição (PATCH), aplicando atualizações parciais com `sqlmodel_update`.
     """
-    
     # 1. Busca o registro no banco pela chave primária
     db_category = session.get(Category, category_id)
     
     # 2. Retorna None caso a categoria não seja encontrada
-    if db_category is None:
+    if db_category is None or db_category.user_id != user_id:
         return None
     
     # 3. Converte o schema em dicionário ignorando valores não enviados
@@ -88,7 +88,7 @@ def update_category_by_id(session: Session, category_data: CategoryUpdate, categ
     return db_category
 
 
-def delete_category_by_id(session: Session, category_id: UUID) -> Category | None:
+def delete_category_by_id(session: Session, category_id: UUID, user_id: UUID) -> Category | None:
     """
     Remove permanentemente uma categoria do banco de dados (Hard Delete).
 
@@ -100,7 +100,7 @@ def delete_category_by_id(session: Session, category_id: UUID) -> Category | Non
     db_category = session.get(Category, category_id)
     
     # 2. Retorna None se a categoria não existir
-    if db_category is None:
+    if db_category is None or db_category.user_id != user_id:
         return None
     
     # 3. Marca o registro para exclusão na sessão e confirma a alteração no PostgreSQL

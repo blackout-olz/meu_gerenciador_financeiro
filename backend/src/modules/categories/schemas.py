@@ -24,8 +24,7 @@ class CategoryCreate(CategoryBase):
     vincula a categoria a um usuário específico; se for None, trata-se de
     uma categoria global do sistema.
     """
-    
-    user_id: UUID | None = None
+    pass
     
 
 class CategoryResponse(CategoryBase):
