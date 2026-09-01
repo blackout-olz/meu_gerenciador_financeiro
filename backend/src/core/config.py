@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     ALGORITHM: str
     
+    # Timming attack
+    DUMMY_PWD: str
+    
     # Define a fonte e a codificação das variáveis
     model_config = SettingsConfigDict(env_file='.env', 
                                       env_file_encoding='utf-8',

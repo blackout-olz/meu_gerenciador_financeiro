@@ -1,10 +1,13 @@
-from sqlmodel import Session, select
-from uuid import UUID
-from src.modules.auth.models import User
-from src.modules.auth.schemas import UserCreate, UserUpdate
-from src.core.security import hash_password
 from datetime import datetime, timezone
+from sqlmodel import Session, select
+from src.modules.auth.models import User
+from src.modules.auth.schemas import UserCreate, UserUpdate, EmailAlreadyInUseException
+from src.core.security import hash_password
 from src.core.security import verify_password
+from src.core.config import Settings
+
+settings = Settings()
+DUMMY_HASHED = hash_password(settings.DUMMY_PWD)
 
 
 def get_user_by_email(session: Session, email: str) -> User | None:
@@ -69,11 +72,11 @@ def update_user_account(session: Session, user_data: UserUpdate, db_user: User) 
     Retorna a instância do usuário atualizado ou None caso o registro não exista.
     """
     
-    ##!! Preciso tratar aq caso ele queira colocar um email que já existe
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if user_data.email:
-        existing_user = get_user_by_email(user_data.email)
+        existing_user = get_user_by_email(session, user_data.email)
         if existing_user and existing_user.id != db_user.id:
-            return None
+            raise EmailAlreadyInUseException("E-mail já em uso.")
     
     # Extrai apenas os campos que foram efetivamente enviados pelo cliente na requisição PATCH
     user_dict = user_data.model_dump(exclude_unset=True)      
@@ -112,8 +115,8 @@ def authenticate_user(session: Session, email: str, password: str) -> User | Non
     """
     user = get_user_by_email(session, email)
     if not user:
-        # aqui vou jogar um verify_password contra um hash ficticio
-        # p prevenir timing attacks
+        # Prevenção a timming attacks
+        verify_password(password, DUMMY_HASHED)
         return None
     if not verify_password(password, user.password_hash):
         return None
