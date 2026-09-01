@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     # String de conexão nativa PostgreSQL (ex: postgresql://user:pass@host:port/dbname)
     SUPABASE_URL: str
     
+    # JWT
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    ALGORITHM: str
+    
     # Define a fonte e a codificação das variáveis
     model_config = SettingsConfigDict(env_file='.env', 
                                       env_file_encoding='utf-8',
